@@ -35,3 +35,7 @@ Then rebuild the Android project. The Android app currently uses a local WebView
 ## Release APK
 
 A release APK must be signed with your own private signing key. Do not share the keystore or passwords. The debug APK is suitable for local testing, not Play Store publication.
+
+## GitHub Actions
+
+This source ZIP includes `.github/workflows/build-apk.yml`. Commit the project so `android/` and `.github/` are at the repository root, then open **Actions → Build debug APK → Run workflow**. The workflow explicitly uses Gradle 8.9 (not 8.7), then uploads `lumen-english-practice-debug-apk` as an artifact. Download the artifact from the completed workflow run.

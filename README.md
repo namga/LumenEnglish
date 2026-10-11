@@ -32,3 +32,7 @@ Listening conversations include Play, Pause/Resume, and Stop controls using the 
 - Gives each navigation item a fixed 56px height so the active-state background cannot stretch vertically.
 - Keeps the safe-area inset padding for devices with gesture navigation.
 - Rebuild `index.html` with `node build.mjs`; the generated page is also synced into `android/app/src/main/assets/www/index.html`.
+
+## Android text-to-speech fallback
+
+The Android wrapper exposes a small `LumenTTS` bridge backed by Android TextToSpeech. Vocabulary cards now show the “Hear it” button in Android WebView even when the Web Speech API (`speechSynthesis`) is unavailable. On Android, tapping the button speaks the word or phrase using the device's installed TTS engine. This fallback is separate from browser-based Listening pause/resume controls.

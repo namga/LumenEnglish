@@ -8,6 +8,9 @@ import android.webkit.WebChromeClient;
 import android.webkit.WebSettings;
 import android.webkit.WebView;
 import android.webkit.WebViewClient;
+import android.webkit.JavascriptInterface;
+import android.speech.tts.TextToSpeech;
+import java.util.Locale;
 import android.app.Activity;
 import androidx.webkit.WebViewAssetLoader;
 
@@ -15,6 +18,23 @@ public class MainActivity extends Activity {
     private static final int AUDIO_PERMISSION_REQUEST = 4102;
     private WebView webView;
     private PermissionRequest pendingWebPermission;
+    private TextToSpeech textToSpeech;
+    private boolean ttsReady = false;
+
+    private final class LumenTTSBridge {
+        @JavascriptInterface
+        public void speak(String text) {
+            runOnUiThread(() -> {
+                if (textToSpeech != null && ttsReady && text != null && !text.trim().isEmpty()) {
+                    textToSpeech.stop();
+                    textToSpeech.setLanguage(Locale.UK);
+                    textToSpeech.speak(text, TextToSpeech.QUEUE_FLUSH, null, "lumen-utterance");
+                }
+            });
+        }
+        @JavascriptInterface
+        public void stop() { runOnUiThread(() -> { if (textToSpeech != null) textToSpeech.stop(); }); }
+    }
 
     @Override
     protected void onCreate(Bundle savedInstanceState) {
@@ -30,9 +50,15 @@ public class MainActivity extends Activity {
             .addPathHandler("/assets/", new WebViewAssetLoader.AssetsPathHandler(this))
             .build();
 
+        textToSpeech = new TextToSpeech(this, status -> {
+            ttsReady = status == TextToSpeech.SUCCESS;
+            if (ttsReady) textToSpeech.setLanguage(Locale.UK);
+        });
+
         webView = new WebView(this);
         WebSettings settings = webView.getSettings();
         settings.setJavaScriptEnabled(true);
+        webView.addJavascriptInterface(new LumenTTSBridge(), "LumenTTS");
         settings.setUseWideViewPort(false);
         settings.setLoadWithOverviewMode(false);
         settings.setTextZoom(100);
@@ -102,6 +128,7 @@ public class MainActivity extends Activity {
             pendingWebPermission.deny();
             pendingWebPermission = null;
         }
+        if (textToSpeech != null) { textToSpeech.stop(); textToSpeech.shutdown(); textToSpeech = null; }
         if (webView != null) {
             webView.stopLoading();
             webView.destroy();

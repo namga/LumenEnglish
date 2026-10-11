@@ -150,14 +150,17 @@ function ensureStopListeningButton(){
 function stopListening(){
   listeningRun++; listeningQueue=[]; listeningActive=false;
   if(canSpeak){ speechSynthesis.cancel(); }
+  if(!canSpeak && window.LumenTTS && typeof window.LumenTTS.stop === "function") window.LumenTTS.stop();
   ensureStopListeningButton();
 }
 function say(lines){
-  if(!canSpeak) return; stopListening(); const run=++listeningRun; listeningQueue=[].concat(lines); listeningActive=listeningQueue.length>0; ensureStopListeningButton();
+  const text=[].concat(lines).filter(Boolean).join(". ");
+  if(!canSpeak){ if(window.LumenTTS && typeof window.LumenTTS.speak === "function") window.LumenTTS.speak(text); return; }
+  stopListening(); const run=++listeningRun; listeningQueue=[].concat(lines); listeningActive=listeningQueue.length>0; ensureStopListeningButton();
   const next=()=>{ if(run!==listeningRun||!listeningActive)return; const t=listeningQueue.shift(); if(!t){listeningActive=false;ensureStopListeningButton();return;} const u=new SpeechSynthesisUtterance(t); u.lang=P.accent; u.rate=.92; const v=voice(); if(v)u.voice=v; u.onend=()=>{if(run===listeningRun)next();}; u.onerror=()=>{if(run===listeningRun){listeningActive=false;listeningQueue=[];ensureStopListeningButton();}}; speechSynthesis.speak(u); };
   next();
 }
-const hearBtn = (text,label="▶ Hear it") => canSpeak ? `<button class="btn sec sm" data-say="${esc(text)}">${label}</button>` : "";
+const hearBtn = (text,label="▶ Hear it") => (canSpeak || !!window.LumenTTS) ? `<button class="btn sec sm" data-say="${esc(text)}">${label}</button>` : "";
 const EXPAND={"i'm":"i am","it's":"it is","don't":"do not","can't":"cannot","i'd":"i would","i've":"i have","i'll":"i will","what's":"what is","that's":"that is","let's":"let us","won't":"will not","didn't":"did not","isn't":"is not"};
 function words(s){ let t=s.toLowerCase().replace(/[’]/g,"'"); for(const [a,b] of Object.entries(EXPAND)) t=t.replace(new RegExp("\\b"+a+"\\b","g"),b); return t.replace(/[^a-z0-9\s]/g," ").split(/\s+/).filter(Boolean); }
 function compare(heard,target){
@@ -215,7 +218,9 @@ function vocabCard(w){
 }
 function dialogue(lines){
   const first=lines[0]?.speaker;
-  return `<div>${lines.map(l=>`<div class="line ${l.speaker===first?"":"me"}"><span class="who">${esc(l.speaker)}</span><span>${esc(l.text)}</span></div>`).join("")}</div>${canSpeak?`<div class="row mt-s" style="gap:8px;flex-wrap:wrap"><button class="btn sec sm" data-sayall="${esc(JSON.stringify(lines.map(l=>l.text)))}" aria-label="Play conversation">▶ Play</button><button class="btn sec sm" data-listen-pause aria-label="Pause or resume audio">Ⅱ Pause</button><button class="btn sec sm" data-listen-stop aria-label="Stop conversation audio">■ Stop</button></div>`:""}`;
+  const hasAudio=canSpeak || !!window.LumenTTS;
+  const controls=hasAudio?`<div class="row mt-s" style="gap:8px;flex-wrap:wrap"><button class="btn sec sm" data-sayall="${esc(JSON.stringify(lines.map(l=>l.text)))}" aria-label="Play conversation">▶ Play the conversation</button>${canSpeak?`<button class="btn sec sm" data-listen-pause aria-label="Pause or resume audio">Ⅱ Pause</button>`:""}<button class="btn sec sm" data-listen-stop aria-label="Stop conversation audio">■ Stop</button></div>`:"";
+  return `<div>${lines.map(l=>`<div class="line ${l.speaker===first?"":"me"}"><span class="who">${esc(l.speaker)}</span><span>${esc(l.text)}</span></div>`).join("")}</div>${controls}`;
 }
 function speakTurn(t, id){
   return `<div class="card mt"><p class="eyebrow">Your turn</p><p style="font-size:1.1rem;margin-top:8px">${esc(t.cue)}</p>

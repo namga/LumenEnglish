@@ -36,3 +36,9 @@ Listening conversations include Play, Pause/Resume, and Stop controls using the 
 ## Android text-to-speech fallback
 
 The Android wrapper exposes a small `LumenTTS` bridge backed by Android TextToSpeech. Vocabulary cards now show the “Hear it” button in Android WebView even when the Web Speech API (`speechSynthesis`) is unavailable. On Android, tapping the button speaks the word or phrase using the device's installed TTS engine. This fallback is separate from browser-based Listening pause/resume controls.
+
+## v9 Listening playback fix
+- The dialogue component now renders `Play the conversation` whenever browser speech synthesis or the Android `LumenTTS` bridge is available.
+- In Android WebView, the Play button uses the native Android TextToSpeech bridge rather than checking only `speechSynthesis`.
+- Stop calls native TextToSpeech stop in Android WebView; Pause is shown only where browser speech synthesis supports it.
+- Updated `index.html` and the packaged Android WebView asset from the same template.

@@ -51726,10 +51726,13 @@ function ensureStopListeningButton(){
 function stopListening(){
   listeningRun++; listeningQueue=[]; listeningActive=false;
   if(canSpeak){ speechSynthesis.cancel(); }
+  if(!canSpeak && window.LumenTTS && typeof window.LumenTTS.stop === "function") window.LumenTTS.stop();
   ensureStopListeningButton();
 }
 function say(lines){
-  if(!canSpeak){ if(window.LumenTTS && typeof window.LumenTTS.speak === "function"){ window.LumenTTS.speak([].concat(lines).filter(Boolean).join(". ")); } return; } stopListening(); const run=++listeningRun; listeningQueue=[].concat(lines); listeningActive=listeningQueue.length>0; ensureStopListeningButton();
+  const text=[].concat(lines).filter(Boolean).join(". ");
+  if(!canSpeak){ if(window.LumenTTS && typeof window.LumenTTS.speak === "function") window.LumenTTS.speak(text); return; }
+  stopListening(); const run=++listeningRun; listeningQueue=[].concat(lines); listeningActive=listeningQueue.length>0; ensureStopListeningButton();
   const next=()=>{ if(run!==listeningRun||!listeningActive)return; const t=listeningQueue.shift(); if(!t){listeningActive=false;ensureStopListeningButton();return;} const u=new SpeechSynthesisUtterance(t); u.lang=P.accent; u.rate=.92; const v=voice(); if(v)u.voice=v; u.onend=()=>{if(run===listeningRun)next();}; u.onerror=()=>{if(run===listeningRun){listeningActive=false;listeningQueue=[];ensureStopListeningButton();}}; speechSynthesis.speak(u); };
   next();
 }
@@ -51791,7 +51794,9 @@ function vocabCard(w){
 }
 function dialogue(lines){
   const first=lines[0]?.speaker;
-  return `<div>${lines.map(l=>`<div class="line ${l.speaker===first?"":"me"}"><span class="who">${esc(l.speaker)}</span><span>${esc(l.text)}</span></div>`).join("")}</div>${canSpeak?`<div class="row mt-s" style="gap:8px;flex-wrap:wrap"><button class="btn sec sm" data-sayall="${esc(JSON.stringify(lines.map(l=>l.text)))}" aria-label="Play conversation">▶ Play</button><button class="btn sec sm" data-listen-pause aria-label="Pause or resume audio">Ⅱ Pause</button><button class="btn sec sm" data-listen-stop aria-label="Stop conversation audio">■ Stop</button></div>`:""}`;
+  const hasAudio=canSpeak || !!window.LumenTTS;
+  const controls=hasAudio?`<div class="row mt-s" style="gap:8px;flex-wrap:wrap"><button class="btn sec sm" data-sayall="${esc(JSON.stringify(lines.map(l=>l.text)))}" aria-label="Play conversation">▶ Play the conversation</button>${canSpeak?`<button class="btn sec sm" data-listen-pause aria-label="Pause or resume audio">Ⅱ Pause</button>`:""}<button class="btn sec sm" data-listen-stop aria-label="Stop conversation audio">■ Stop</button></div>`:"";
+  return `<div>${lines.map(l=>`<div class="line ${l.speaker===first?"":"me"}"><span class="who">${esc(l.speaker)}</span><span>${esc(l.text)}</span></div>`).join("")}</div>${controls}`;
 }
 function speakTurn(t, id){
   return `<div class="card mt"><p class="eyebrow">Your turn</p><p style="font-size:1.1rem;margin-top:8px">${esc(t.cue)}</p>

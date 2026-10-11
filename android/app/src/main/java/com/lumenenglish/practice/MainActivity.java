@@ -33,6 +33,9 @@ public class MainActivity extends Activity {
         webView = new WebView(this);
         WebSettings settings = webView.getSettings();
         settings.setJavaScriptEnabled(true);
+        settings.setUseWideViewPort(false);
+        settings.setLoadWithOverviewMode(false);
+        settings.setTextZoom(100);
         settings.setDomStorageEnabled(true);
         settings.setDatabaseEnabled(true);
         settings.setMediaPlaybackRequiresUserGesture(false);
@@ -46,6 +49,11 @@ public class MainActivity extends Activity {
             }
         });
         webView.setWebChromeClient(new WebChromeClient() {
+            @Override
+            public boolean onConsoleMessage(android.webkit.ConsoleMessage consoleMessage) {
+                android.util.Log.d("LumenWebView", consoleMessage.message() + " (line " + consoleMessage.lineNumber() + ")");
+                return true;
+            }
             @Override
             public void onPermissionRequest(PermissionRequest request) {
                 boolean asksForAudio = false;

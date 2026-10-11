@@ -39,3 +39,6 @@ A release APK must be signed with your own private signing key. Do not share the
 ## GitHub Actions
 
 This source ZIP includes `.github/workflows/build-apk.yml`. Commit the project so `android/` and `.github/` are at the repository root, then open **Actions → Build debug APK → Run workflow**. The workflow explicitly uses Gradle 8.9 (not 8.7), then uploads `lumen-english-practice-debug-apk` as an artifact. Download the artifact from the completed workflow run.
+
+## App icon
+Launcher icon assets are included under `app/src/main/res/mipmap-*` and an adaptive icon is configured for Android 8.0+.

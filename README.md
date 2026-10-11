@@ -26,3 +26,9 @@ Listening conversations include Play, Pause/Resume, and Stop controls using the 
 - Simplified launcher artwork to a clean blue gradient, open book, and EN speech bubble.
 - Updated Android launcher density assets and the web/PWA icon.
 - Rebuild the APK through GitHub Actions to include the updated icon.
+
+## v7 Android WebView navigation fix
+- Forces the four-item bottom navigation into a compact horizontal flex row in Android WebView.
+- Gives each navigation item a fixed 56px height so the active-state background cannot stretch vertically.
+- Keeps the safe-area inset padding for devices with gesture navigation.
+- Rebuild `index.html` with `node build.mjs`; the generated page is also synced into `android/app/src/main/assets/www/index.html`.

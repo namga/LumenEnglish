@@ -109,8 +109,6 @@ input[type=text],input[type=search],textarea{border:1px solid var(--border);box-
   </header>
   <nav class="rooms" id="nav" aria-label="Main navigation"></nav>
   <main id="app"></main>
-<div id="runtime-error" role="alert" style="display:none;margin:16px auto;max-width:780px;padding:16px;border-radius:16px;background:#fff0f0;color:#7a2020;border:1px solid #e8baba;font:14px/1.5 system-ui,sans-serif"><strong>Lumen chưa tải được nội dung.</strong><p id="runtime-error-detail" style="margin-top:6px"></p><button onclick="location.reload()" style="margin-top:8px;padding:10px 14px;border:0;border-radius:10px;background:#385d7b;color:white">Tải lại ứng dụng</button></div>
-<script>window.addEventListener('error',function(e){var box=document.getElementById('runtime-error');if(box){box.style.display='block';document.getElementById('runtime-error-detail').textContent=(e.message||'Lỗi JavaScript')+' (dòng '+(e.lineno||'?')+')';}});window.addEventListener('unhandledrejection',function(e){var box=document.getElementById('runtime-error');if(box){box.style.display='block';document.getElementById('runtime-error-detail').textContent='Lỗi khi khởi tạo: '+String(e.reason||'unknown');}});</script>
 </div>
 
 <script>
@@ -51793,7 +51791,7 @@ function vocabCard(w){
 }
 function dialogue(lines){
   const first=lines[0]?.speaker;
-  return `<div>${lines.map(l=>`<div class="line ${l.speaker===first?"":"me"}"><span class="who">${esc(l.speaker)}</span><span>${esc(l.text)}</span></div>`).join("")}</div>${canSpeak?`<div class="mt-s"><button class="btn sec sm" data-sayall="${esc(JSON.stringify(lines.map(l=>l.text)))}">Play the conversation</button></div>`:""}`;
+  return `<div>${lines.map(l=>`<div class="line ${l.speaker===first?"":"me"}"><span class="who">${esc(l.speaker)}</span><span>${esc(l.text)}</span></div>`).join("")}</div>${canSpeak?`<div class="row mt-s" style="gap:8px;flex-wrap:wrap"><button class="btn sec sm" data-sayall="${esc(JSON.stringify(lines.map(l=>l.text)))}" aria-label="Play conversation">▶ Play</button><button class="btn sec sm" data-listen-pause aria-label="Pause or resume audio">Ⅱ Pause</button><button class="btn sec sm" data-listen-stop aria-label="Stop conversation audio">■ Stop</button></div>`:""}`;
 }
 function speakTurn(t, id){
   return `<div class="card mt"><p class="eyebrow">Your turn</p><p style="font-size:1.1rem;margin-top:8px">${esc(t.cue)}</p>
@@ -52016,6 +52014,8 @@ document.addEventListener("click",e=>{
   if("speaksearch" in d){ speakSearch=document.getElementById("speak-search")?.value||""; return render(true); }
   if("speakclear" in d){ speakSearch=""; speakFilter="All"; return render(true); }
   if(d.go) { if(d.go!==view) logActivity("visit",d.go); return go(d.go); }
+  if("listenpause" in d){ if(!canSpeak) return; if(speechSynthesis.paused){speechSynthesis.resume();t.textContent="Ⅱ Pause";t.setAttribute("aria-label","Pause audio");}else if(speechSynthesis.speaking){speechSynthesis.pause();t.textContent="▶ Resume";t.setAttribute("aria-label","Resume audio");} return; }
+  if("listenstop" in d){ stopListening(); document.querySelectorAll("[data-listen-pause]").forEach(b=>{b.textContent="Ⅱ Pause";b.setAttribute("aria-label","Pause or resume audio");}); return; }
   if(d.say!==undefined) return say(d.say);
   if(d.sayall) return say(JSON.parse(d.sayall));
   if(d.level){ P.level=d.level; save(); return render(); }
@@ -52098,13 +52098,4 @@ nav.rooms{position:fixed;left:50%;bottom:0;transform:translateX(-50%);z-index:30
 .lesson-open{margin-top:auto;padding-top:8px;color:var(--primary);font-size:.88rem;font-weight:700}
 @media(min-width:781px){nav.rooms{bottom:18px;border:1px solid var(--border);border-radius:20px;padding-bottom:8px}.stop-listening{bottom:calc(96px + env(safe-area-inset-bottom))}}
 @media(max-width:520px){nav.rooms{width:100%;border-radius:18px 18px 0 0;padding-inline:8px}.nav-item{min-height:56px;font-size:.7rem}.settings-trigger{width:40px;height:40px}.stats{margin-left:auto}.brand i{display:none}.lesson-room{min-height:160px}}
-
-/* Android WebView layout hardening: keep the app viewport full-width and the nav at the bottom. */
-html,body{width:100%;min-width:0;min-height:100%;margin:0}
-body{overflow-x:hidden;padding-left:14px;padding-right:14px;padding-bottom:calc(86px + env(safe-area-inset-bottom))}
-.wrap{width:100%;max-width:780px;margin-left:auto;margin-right:auto}
-nav.rooms{position:fixed!important;left:0!important;right:0!important;top:auto!important;bottom:0!important;transform:none!important;width:100%!important;max-width:780px!important;height:auto!important;min-height:0!important;margin:0 auto!important;display:grid!important;grid-template-columns:repeat(4,minmax(0,1fr))!important;align-items:stretch;z-index:9999;padding:8px 8px calc(8px + env(safe-area-inset-bottom))!important;border-radius:18px 18px 0 0!important;overflow:visible!important}
-.nav-item{width:100%;min-width:0;min-height:56px;height:auto;white-space:normal}
-main#app{display:block;width:100%;min-height:180px}
-@media(min-width:781px){nav.rooms{bottom:0!important}}
 </style>

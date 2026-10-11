@@ -215,7 +215,7 @@ function vocabCard(w){
 }
 function dialogue(lines){
   const first=lines[0]?.speaker;
-  return `<div>${lines.map(l=>`<div class="line ${l.speaker===first?"":"me"}"><span class="who">${esc(l.speaker)}</span><span>${esc(l.text)}</span></div>`).join("")}</div>${canSpeak?`<div class="mt-s"><button class="btn sec sm" data-sayall="${esc(JSON.stringify(lines.map(l=>l.text)))}">Play the conversation</button></div>`:""}`;
+  return `<div>${lines.map(l=>`<div class="line ${l.speaker===first?"":"me"}"><span class="who">${esc(l.speaker)}</span><span>${esc(l.text)}</span></div>`).join("")}</div>${canSpeak?`<div class="row mt-s" style="gap:8px;flex-wrap:wrap"><button class="btn sec sm" data-sayall="${esc(JSON.stringify(lines.map(l=>l.text)))}" aria-label="Play conversation">▶ Play</button><button class="btn sec sm" data-listen-pause aria-label="Pause or resume audio">Ⅱ Pause</button><button class="btn sec sm" data-listen-stop aria-label="Stop conversation audio">■ Stop</button></div>`:""}`;
 }
 function speakTurn(t, id){
   return `<div class="card mt"><p class="eyebrow">Your turn</p><p style="font-size:1.1rem;margin-top:8px">${esc(t.cue)}</p>
@@ -438,6 +438,8 @@ document.addEventListener("click",e=>{
   if("speaksearch" in d){ speakSearch=document.getElementById("speak-search")?.value||""; return render(true); }
   if("speakclear" in d){ speakSearch=""; speakFilter="All"; return render(true); }
   if(d.go) { if(d.go!==view) logActivity("visit",d.go); return go(d.go); }
+  if("listenpause" in d){ if(!canSpeak) return; if(speechSynthesis.paused){speechSynthesis.resume();t.textContent="Ⅱ Pause";t.setAttribute("aria-label","Pause audio");}else if(speechSynthesis.speaking){speechSynthesis.pause();t.textContent="▶ Resume";t.setAttribute("aria-label","Resume audio");} return; }
+  if("listenstop" in d){ stopListening(); document.querySelectorAll("[data-listen-pause]").forEach(b=>{b.textContent="Ⅱ Pause";b.setAttribute("aria-label","Pause or resume audio");}); return; }
   if(d.say!==undefined) return say(d.say);
   if(d.sayall) return say(JSON.parse(d.sayall));
   if(d.level){ P.level=d.level; save(); return render(); }

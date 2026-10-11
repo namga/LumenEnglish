@@ -1,0 +1,20 @@
+{
+  "id": "./",
+  "name": "Lumen English Practice",
+  "short_name": "Lumen",
+  "description": "A calm, mobile-friendly English practice app.",
+  "start_url": "./",
+  "scope": "./",
+  "display": "standalone",
+  "orientation": "portrait",
+  "background_color": "#f5f6f8",
+  "theme_color": "#385d7b",
+  "icons": [
+    {
+      "src": "./icons/icon.svg",
+      "sizes": "any",
+      "type": "image/svg+xml",
+      "purpose": "any maskable"
+    }
+  ]
+}

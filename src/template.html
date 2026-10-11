@@ -1,0 +1,523 @@
+<title>Lumen English Practice</title>
+<meta name="viewport" content="width=device-width, initial-scale=1, viewport-fit=cover">
+<meta name="theme-color" content="#385d7b">
+<meta name="description" content="A calm, mobile-friendly English practice app.">
+<link rel="manifest" href="./manifest.webmanifest">
+<link rel="icon" href="./icons/icon.svg" type="image/svg+xml">
+<link rel="preconnect" href="https://fonts.googleapis.com">
+<link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
+<link rel="stylesheet" href="https://fonts.googleapis.com/css2?family=DM+Sans:wght@400;500;600;700&family=Manrope:wght@400;500;600;700;800&family=Fraunces:ital,opsz,wght@0,9..144,500;0,9..144,600;1,9..144,500&display=swap">
+<style>
+/* Layout: one narrow reading column, top nav of rooms, cards only where a task lives. */
+:root{
+  --bg:#f3f0ea; --surface:#e8e3d9; --elevated:#fbf9f4; --fg:#1c1b18; --muted:#615b55; --subtle:#7a746c;
+  --border:#d4cdc0; --primary:#3e5366; --primary-fg:#f6f3ec; --ok:#3f6b4f; --ok-fg:#f3f0ea; --bad:#8f3d32; --bad-fg:#f3f0ea;
+  --shadow:0 0 0 1px rgba(28,27,24,.07),0 1px 2px -1px rgba(28,27,24,.07),0 2px 4px rgba(28,27,24,.04);
+  --sans:"DM Sans",ui-sans-serif,system-ui,sans-serif; --display:"Manrope","Fraunces","Iowan Old Style",Georgia,serif;
+}
+@media (prefers-color-scheme:dark){:root:not([data-theme="light"]){
+  --bg:#15181b; --surface:#23282d; --elevated:#1e2226; --fg:#ece8e0; --muted:#a8a298; --subtle:#8d887f;
+  --border:#353b41; --primary:#8fb0cb; --primary-fg:#12171b; --ok:#7fb58f; --ok-fg:#0f1a13; --bad:#da877c; --bad-fg:#1c0f0d;
+  --shadow:0 0 0 1px rgba(255,255,255,.07),0 1px 2px rgba(0,0,0,.3); color-scheme:dark}}
+:root[data-theme="dark"]{
+  --bg:#15181b; --surface:#23282d; --elevated:#1e2226; --fg:#ece8e0; --muted:#a8a298; --subtle:#8d887f;
+  --border:#353b41; --primary:#8fb0cb; --primary-fg:#12171b; --ok:#7fb58f; --ok-fg:#0f1a13; --bad:#da877c; --bad-fg:#1c0f0d;
+  --shadow:0 0 0 1px rgba(255,255,255,.07),0 1px 2px rgba(0,0,0,.3); color-scheme:dark}
+*{box-sizing:border-box}
+body{background:var(--bg);color:var(--fg);font:400 18px/1.65 var(--sans);-webkit-font-smoothing:antialiased;padding-inline:16px;padding-block:0 64px}
+h1,h2,h3{font-family:var(--display);font-weight:500;letter-spacing:-.03em;line-height:1.15;margin:0;text-wrap:balance}
+p{margin:0;text-wrap:pretty}
+button{font:inherit;color:inherit;cursor:pointer;touch-action:manipulation}
+button:disabled{opacity:.45;cursor:default}
+:focus-visible{outline:2px solid var(--primary);outline-offset:2px}
+.wrap{max-width:920px;margin-inline:auto}
+header.top{display:flex;align-items:center;gap:12px;padding-block:18px 8px;flex-wrap:wrap}
+.brand{font-family:var(--display);font-size:1.5rem;letter-spacing:-.03em;background:none;border:0;padding:0;display:flex;gap:8px;align-items:baseline}
+.brand i{font-size:.8rem;color:var(--subtle);font-style:italic}
+.stats{margin-left:auto;display:flex;gap:14px;font-size:.85rem;color:var(--muted);font-variant-numeric:tabular-nums;align-items:center}
+.stats button{background:none;border:0;color:var(--muted);padding:8px 2px;min-height:40px}
+nav.rooms{display:flex;gap:6px;overflow-x:auto;padding-block:8px 4px;scrollbar-width:none}
+nav.rooms::-webkit-scrollbar{display:none}
+.chip{flex:none;min-height:48px;padding:0 16px;border-radius:99px;border:0;background:var(--surface);color:var(--muted);font-size:.9rem;font-weight:500}
+.chip[aria-current="true"],.chip.on{background:var(--primary);color:var(--primary-fg)}
+.eyebrow{font-size:.72rem;font-weight:600;letter-spacing:.09em;text-transform:uppercase;color:var(--muted)}
+main{padding-block:28px 0}
+main h1{font-size:clamp(2.35rem,7vw,3.6rem)}
+.lede{margin-top:12px;color:var(--muted);max-width:34rem}
+.card{background:var(--elevated);border:1px solid var(--border);border-radius:24px;padding:clamp(22px,4vw,32px);box-shadow:var(--shadow)}
+.card+.card,.stack>*+*{margin-top:14px}
+.btn{min-height:48px;padding:0 22px;border-radius:99px;border:0;background:var(--primary);color:var(--primary-fg);font-weight:600}
+.btn.sec{background:var(--surface);color:var(--fg)}
+.btn.sm{min-height:44px;padding:0 16px;font-size:.9rem}
+.row{display:flex;gap:10px;flex-wrap:wrap;align-items:center}
+.mt{margin-top:24px}.mt-s{margin-top:12px}
+.muted{color:var(--muted)}.small{font-size:.9rem}
+.display{font-family:var(--display);letter-spacing:-.02em}
+.grid{display:grid;gap:12px;grid-template-columns:repeat(auto-fit,minmax(min(100%,260px),1fr))}
+.room{display:block;text-align:left;width:100%;border:0;background:var(--elevated);border-radius:20px;padding:20px;box-shadow:var(--shadow);transition:transform .15s}
+.room:active{transform:scale(.99)}
+.room b{display:block;font-family:var(--display);font-weight:600;font-size:1.5rem;letter-spacing:-.02em}
+.path{list-style:none;padding:0;margin:20px 0 0;display:grid;gap:12px}
+.path li{display:flex;gap:14px;align-items:baseline}
+.path .n{width:1.6rem;font-family:var(--display);font-style:italic;color:var(--subtle)}
+.path .k{width:5rem;flex:none}
+.bar{display:flex;gap:6px;margin-top:12px}.bar span{flex:1;height:4px;border-radius:9px;background:var(--surface)}.bar span.on{background:var(--primary)}
+.word{font-family:var(--display);font-size:2.2rem;letter-spacing:-.03em}
+.ipa{color:var(--muted);font-size:.95rem}
+.tags{display:flex;gap:6px;flex-wrap:wrap;margin-top:12px}
+.tag{background:var(--surface);border-radius:99px;padding:4px 12px;font-size:.82rem;color:var(--muted)}
+.tip{margin-top:14px;padding-top:14px;border-top:1px solid var(--border);font-size:.92rem;color:var(--muted)}
+.ex{font-style:italic;margin-top:10px}
+.opt{display:block;width:100%;text-align:left;min-height:48px;padding:12px 16px;border-radius:12px;border:0;background:var(--bg);box-shadow:var(--shadow);font-size:.95rem;margin-top:8px}
+.opt.sel{background:var(--primary);color:var(--primary-fg)}
+.opt.right{background:var(--ok);color:var(--ok-fg)}.opt.wrong{background:var(--bad);color:var(--bad-fg)}.opt.dim{color:var(--muted)}
+input[type=text],textarea{width:100%;font:inherit;font-size:1rem;color:var(--fg);background:var(--bg);border:0;border-radius:12px;box-shadow:var(--shadow);padding:12px 16px;min-height:48px}
+textarea{resize:vertical;min-height:110px}
+.line{display:flex;gap:12px;margin-top:10px}
+.line .who{flex:none;width:4.5rem;font-size:.72rem;font-weight:600;letter-spacing:.08em;text-transform:uppercase;color:var(--muted);padding-top:4px}
+.line.me .who{color:var(--primary)}
+.good{color:var(--ok);font-weight:600}.bad{color:var(--bad);font-weight:600}
+.reply{white-space:pre-wrap;font-size:.96rem;line-height:1.6}
+.pick{display:grid;gap:10px;margin-top:24px}
+.pick button{text-align:left;border:0;border-radius:20px;background:var(--elevated);box-shadow:var(--shadow);padding:18px 20px}
+.pick b{display:block;font-family:var(--display);font-weight:500;font-size:1.25rem}
+.back{background:none;border:0;color:var(--muted);min-height:44px;padding:0;margin-bottom:8px}
+.done{color:var(--ok)}
+/* Refined visual rhythm: calmer contrast, consistent spacing, clearer touch targets. */
+:root{--bg:#f5f6f8;--surface:#e9edf2;--elevated:#ffffff;--fg:#202936;--muted:#667386;--subtle:#8a95a5;--border:#dce2e9;--primary:#385d7b;--primary-fg:#fff;--ok:#276749;--bad:#a43e42;--shadow:0 2px 6px rgba(28,45,64,.035),0 10px 28px rgba(28,45,64,.045)}
+@media (prefers-color-scheme:dark){:root:not([data-theme="light"]){--bg:#121923;--surface:#202b38;--elevated:#18222e;--fg:#edf2f7;--muted:#a8b5c5;--subtle:#8292a5;--border:#2c3948;--primary:#8eb6d6;--primary-fg:#101923;--ok:#83c69b;--bad:#ed9292;--shadow:0 2px 8px rgba(0,0,0,.16)}}
+:root[data-theme="dark"]{--bg:#121923;--surface:#202b38;--elevated:#18222e;--fg:#edf2f7;--muted:#a8b5c5;--subtle:#8292a5;--border:#2c3948;--primary:#8eb6d6;--primary-fg:#101923;--ok:#83c69b;--bad:#ed9292;--shadow:0 2px 8px rgba(0,0,0,.16)}
+body{font-size:16px;line-height:1.65;letter-spacing:.005em;padding-inline:clamp(14px,3vw,24px);padding-top:env(safe-area-inset-top);padding-bottom:calc(64px + env(safe-area-inset-bottom))}
+.wrap{max-width:780px}header.top{padding-block:24px 12px}.brand{font-weight:800;letter-spacing:-.055em}.brand i{font-family:var(--sans);font-size:.7rem;letter-spacing:.015em;font-weight:500}
+nav.rooms{gap:8px;padding-block:12px 6px;position:sticky;top:0;z-index:5;background:var(--bg);margin-inline:-4px;padding-inline:4px}
+.chip{transition:background .15s ease,transform .15s ease}.chip:active,.btn:active{transform:translateY(1px)}
+main{padding-block:32px 0}main h1{letter-spacing:-.055em;line-height:1.08}h2{letter-spacing:-.035em}
+.card,.room,.pick button{border:1px solid color-mix(in srgb,var(--border) 72%,transparent);border-radius:22px}.card{padding:clamp(18px,4vw,26px)}.room{padding:22px;transition:transform .18s ease,box-shadow .18s ease}.room:hover,.pick button:hover{transform:translateY(-2px);box-shadow:var(--shadow)}
+.btn{box-shadow:0 2px 4px rgba(20,40,60,.08);transition:transform .15s ease,opacity .15s ease}.btn.sec{box-shadow:none}.word{font-family:var(--display);font-size:2.35rem;letter-spacing:-.055em}.line{padding:9px 12px;border-radius:12px;background:var(--bg);align-items:flex-start}.line+.line{margin-top:6px}.line .who{padding-top:2px}.tip{line-height:1.6}
+.pick{gap:12px}.pick button{text-align:left;border:1px solid var(--border);border-radius:18px;background:var(--elevated);padding:20px 22px}.pick b{font-family:var(--sans);font-size:1.03rem;font-weight:700;letter-spacing:-.015em;margin-bottom:4px}.eyebrow{letter-spacing:.12em;font-size:.7rem}.lede{font-size:1.04rem;line-height:1.7;max-width:40rem}
+input[type=text],input[type=search],textarea{border:1px solid var(--border);box-shadow:none}input:focus,textarea:focus{outline:2px solid color-mix(in srgb,var(--primary) 45%,transparent);outline-offset:1px}
+@media(max-width:520px){body{padding-inline:12px}.stats{gap:9px;font-size:.8rem}.brand{font-size:1.4rem}.card{border-radius:18px}.line{gap:9px;padding:8px}.line .who{width:3.8rem}.chip{padding-inline:13px}}
+
+@media (prefers-reduced-motion:no-preference){.in{animation:in .4s cubic-bezier(.22,1,.36,1) both}@keyframes in{from{opacity:0;transform:translateY(8px)}to{opacity:1;transform:none}}}
+</style>
+
+<div class="wrap">
+  <header class="top">
+    <button class="brand" data-go="today" aria-label="Lumen, home">Lumen <i>English practice</i></button>
+    <div class="stats" id="stats"></div>
+    <button class="settings-trigger" data-go="settings" aria-label="Open settings" title="Settings"><span aria-hidden="true">⚙</span></button>
+  </header>
+  <nav class="rooms" id="nav" aria-label="Main navigation"></nav>
+  <main id="app"></main>
+</div>
+
+<script>
+const DATA = /*DATA*/;
+const {VOCAB_SETS, GRAMMAR_LESSONS, LISTEN_LESSONS, SPEAK_SCENARIOS, LEVEL_COPY} = DATA;
+const KEY = "lumen-progress-v1";
+const ROOMS = [["today","⌂","Home"],["lessons","▤","Lessons"],["speak","◉","Speaking"],["progress","▥","Progress"]];
+const P = {level:null, accent:"en-GB", streak:0, last:null, xp:0, known:[], completed:[], dailyDone:null, history:[]};
+try { Object.assign(P, JSON.parse(localStorage.getItem(KEY) || "{}")); } catch(e) {}
+if(!Array.isArray(P.history)) P.history=[];
+function logActivity(type,label){ const entry={date:todayKey(),type,label:String(label||type).slice(0,120),time:Date.now()}; P.history.push(entry); if(P.history.length>1000) P.history=P.history.slice(-1000); save(); }
+function save(){ try { localStorage.setItem(KEY, JSON.stringify(P)); } catch(e) {} }
+
+const esc = s => String(s ?? "").replace(/[&<>"']/g, c => ({"&":"&amp;","<":"&lt;",">":"&gt;",'"':"&quot;","'":"&#39;"}[c]));
+const todayKey = (d=new Date()) => d.getFullYear()+"-"+String(d.getMonth()+1).padStart(2,"0")+"-"+String(d.getDate()).padStart(2,"0");
+const hash = s => { let h=0; for (const ch of s) h=(h*31+ch.charCodeAt(0))|0; return Math.abs(h); };
+const pick = (a,seed,salt) => a[(seed+salt)%a.length];
+const byLevel = (a,l) => { const m=a.filter(x=>x.level===l); return m.length?m:a; };
+function norm(s){ return s.trim().toLowerCase().replace(/[’']/g,"'").replace(/[.,!?]/g,"").replace(/\s+/g," "); }
+function matches(given, q){ const g=norm(given); return [q.answer,...(q.acceptable||[])].some(a=>norm(a)===g); }
+
+function award(n){ P.xp+=n; }
+function touch(){
+  const t=todayKey(); if (P.last===t){ P.streak=P.streak||1; return; }
+  const y=new Date(); y.setDate(y.getDate()-1);
+  P.streak = P.last===todayKey(y) ? P.streak+1 : 1; P.last=t;
+}
+function complete(id){ const fresh=!P.completed.includes(id); if(fresh){ P.completed.push(id); award(20); logActivity("completed",id); } touch(); save(); }
+
+/* ---------- speech ---------- */
+const canSpeak = "speechSynthesis" in window;
+function voice(){ const v=speechSynthesis.getVoices(); return v.find(x=>x.lang===P.accent)||v.find(x=>x.lang.startsWith("en"))||null; }
+let listeningQueue = [], listeningActive = false, listeningRun = 0;
+function ensureStopListeningButton(){
+  let b=document.getElementById("stop-listening");
+  if(!b){ b=document.createElement("button"); b.id="stop-listening"; b.type="button"; b.className="btn stop-listening"; b.innerHTML="■ Stop listening"; b.setAttribute("aria-label","Stop audio playback"); b.addEventListener("click",stopListening); document.body.appendChild(b); }
+  b.hidden=!listeningActive;
+}
+function stopListening(){
+  listeningRun++; listeningQueue=[]; listeningActive=false;
+  if(canSpeak){ speechSynthesis.cancel(); }
+  ensureStopListeningButton();
+}
+function say(lines){
+  if(!canSpeak) return; stopListening(); const run=++listeningRun; listeningQueue=[].concat(lines); listeningActive=listeningQueue.length>0; ensureStopListeningButton();
+  const next=()=>{ if(run!==listeningRun||!listeningActive)return; const t=listeningQueue.shift(); if(!t){listeningActive=false;ensureStopListeningButton();return;} const u=new SpeechSynthesisUtterance(t); u.lang=P.accent; u.rate=.92; const v=voice(); if(v)u.voice=v; u.onend=()=>{if(run===listeningRun)next();}; u.onerror=()=>{if(run===listeningRun){listeningActive=false;listeningQueue=[];ensureStopListeningButton();}}; speechSynthesis.speak(u); };
+  next();
+}
+const hearBtn = (text,label="▶ Hear it") => canSpeak ? `<button class="btn sec sm" data-say="${esc(text)}">${label}</button>` : "";
+const EXPAND={"i'm":"i am","it's":"it is","don't":"do not","can't":"cannot","i'd":"i would","i've":"i have","i'll":"i will","what's":"what is","that's":"that is","let's":"let us","won't":"will not","didn't":"did not","isn't":"is not"};
+function words(s){ let t=s.toLowerCase().replace(/[’]/g,"'"); for(const [a,b] of Object.entries(EXPAND)) t=t.replace(new RegExp("\\b"+a+"\\b","g"),b); return t.replace(/[^a-z0-9\s]/g," ").split(/\s+/).filter(Boolean); }
+function compare(heard,target){
+  const said=words(heard), want=words(target); if(!want.length) return null;
+  const ss=new Set(said), ws=new Set(want);
+  const missing=[...new Set(want.filter(w=>!ss.has(w)))], extra=[...new Set(said.filter(w=>!ws.has(w)))];
+  const raw=Math.round((want.length-want.filter(w=>!ss.has(w)).length)/want.length*100);
+  const score=Math.max(0,raw-Math.min(15,extra.length*3));
+  return {score,missing,extra,verdict:score>=88?"Spot on.":score>=62?"Close.":"Try again."};
+}
+
+/* ---------- quiz ---------- */
+const QZ = {};
+function quizHTML(id, qs){
+  const s = QZ[id] ||= {i:0,sel:null,typed:"",checked:false,score:0,done:false};
+  if (s.done){
+    const msg = s.score===qs.length ? "All correct. That rule is sitting more firmly now." : s.score>=Math.ceil(qs.length/2) ? "Solid. Read the notes once more on the ones you missed." : "A useful miss. Stay with the explanation and try the set again.";
+    return `<div class="card" data-quiz="${id}"><p class="display" style="font-size:1.6rem">${s.score} of ${qs.length}</p><p class="muted mt-s">${msg}</p><button class="btn sec mt-s" data-qreset="${id}">Try the set again</button></div>`;
+  }
+  const q = qs[s.i], given = q.kind==="mcq" ? (s.sel||"") : s.typed, ok = s.checked && matches(given,q), last = s.i+1>=qs.length;
+  let body;
+  if (q.kind==="mcq") body = (q.options||[]).map(o=>{
+    let c="opt"; if(!s.checked && s.sel===o) c+=" sel"; if(s.checked){ if(o===q.answer)c+=" right"; else if(s.sel===o)c+=" wrong"; else c+=" dim"; }
+    return `<button class="${c}" data-qpick="${id}" data-v="${esc(o)}">${esc(o)}</button>`; }).join("");
+  else body = `<div class="mt-s"><input type="text" id="${id}-in" data-qtype="${id}" value="${esc(s.typed)}" ${s.checked?"disabled":""} placeholder="Type the missing word" autocomplete="off" aria-label="Your answer"></div>`;
+  const foot = s.checked
+    ? `<p class="${ok?"good":"bad"} small mt-s">${ok?"Yes.":"It's “"+esc(q.answer)+"”."}</p><p class="muted small" style="margin-top:6px">${esc(q.explanation)}</p><button class="btn mt-s" data-qnext="${id}">${last?"See the score":"Next"}</button>`
+    : `<button class="btn mt-s" data-qcheck="${id}" ${given.trim()?"":"disabled"}>Check</button>`;
+  return `<div class="card" data-quiz="${id}"><p class="eyebrow">${s.i+1} of ${qs.length}</p><p style="font-size:1.1rem;line-height:1.4;margin-top:10px">${esc(q.prompt)}</p>${body}${foot}</div>`;
+}
+const QSETS = {};
+function quiz(id, qs){ QSETS[id]=qs; return quizHTML(id,qs); }
+function reQuiz(id){ const el=document.querySelector(`[data-quiz="${id}"]`); if(!el) return; const t=document.createElement("div"); t.innerHTML=quizHTML(id,QSETS[id]); el.replaceWith(t.firstElementChild); const inp=document.getElementById(id+"-in"); if(inp&&!QZ[id].checked) inp.focus(); }
+
+/* ---------- views ---------- */
+let view = "today", sub = null, daily = null, wordSet = null, wordSearch = "", wordPage = 0, speakFilter = "All", speakSearch = "", coach = {mode:"correct", busy:false, error:null, reply:null, hist:[]};
+const app = document.getElementById("app");
+
+function onboarding(){
+  return `<div class="in"><p class="eyebrow">Welcome</p><h1 class="mt-s">Where are you with English?</h1><p class="lede">Pick the line that sounds most like you. You can change it any time.</p>
+  <div class="pick">${Object.entries(LEVEL_COPY).map(([k,v])=>`<button data-level="${k}"><b>${v.label}</b><span class="muted small">${esc(v.line)}</span></button>`).join("")}</div></div>`;
+}
+function plan(){
+  const key=todayKey(), seed=hash(key+":"+P.level);
+  const sets=byLevel(VOCAB_SETS,P.level), set=pick(sets,seed,1);
+  return {key, set, word:pick(set.items,seed,3), grammar:pick(byLevel(GRAMMAR_LESSONS,P.level),seed,5), listen:pick(byLevel(LISTEN_LESSONS,P.level),seed,7), speak:pick(byLevel(SPEAK_SCENARIOS,P.level),seed,11)};
+}
+function vocabCard(w){
+  const known=P.known.includes(w.id);
+  return `<article class="card"><div class="row" style="justify-content:space-between;align-items:flex-start"><div><div class="word">${esc(w.word)}</div><div class="ipa">${esc(w.ipa)} · ${esc(w.pos)}</div></div>${hearBtn(w.word)}</div>
+  <p class="mt-s">${esc(w.meaning)}</p><p class="ex">“${esc(w.example)}”</p>
+  <div class="tags">${w.collocations.map(c=>`<span class="tag">${esc(c)}</span>`).join("")}</div>
+  <p class="tip">${esc(w.tip)}</p>
+  <div class="row mt-s">${known?`<button class="btn sec sm done" data-known="${w.id}">✓ Kept in your words</button>`:`<button class="btn sm" data-known="${w.id}">Keep this word</button>`}</div></article>`;
+}
+function dialogue(lines){
+  const first=lines[0]?.speaker;
+  return `<div>${lines.map(l=>`<div class="line ${l.speaker===first?"":"me"}"><span class="who">${esc(l.speaker)}</span><span>${esc(l.text)}</span></div>`).join("")}</div>${canSpeak?`<div class="mt-s"><button class="btn sec sm" data-sayall="${esc(JSON.stringify(lines.map(l=>l.text)))}">Play the conversation</button></div>`:""}`;
+}
+function speakTurn(t, id){
+  return `<div class="card mt"><p class="eyebrow">Your turn</p><p style="font-size:1.1rem;margin-top:8px">${esc(t.cue)}</p>
+  <p class="muted small mt-s">Say your answer out loud, then type what you said to compare it with the model.</p>
+  <textarea id="say-${id}" placeholder="Type what you said" aria-label="What you said"></textarea>
+  <div class="row mt-s"><button class="btn sm" data-cmp="${id}" data-target="${esc(t.modelAnswer)}">Compare</button>${hearBtn(t.modelAnswer,"Hear a model")}<button class="btn sec sm" data-show="${id}">Show a model answer</button></div>
+  <div id="res-${id}" class="mt-s"></div>
+  <div id="mod-${id}" hidden class="tip"><p style="color:var(--fg);font-weight:500">${esc(t.modelAnswer)}</p><p class="small" style="margin-top:6px">${esc(t.notes)}</p></div></div>`;
+}
+
+const V = {
+  today(){
+    if(!P.level) return onboarding();
+    if(daily){ return dailyView(); }
+    const p=plan(), done=P.dailyDone===p.key;
+    const rows=[["Word",p.word.word+" — "+p.word.meaning.split(/[.—]/)[0]],["Grammar",p.grammar.title],["Listen",p.listen.title],["Speak",p.speak.title]];
+    return `<div class="in"><p class="muted small">${new Date().toLocaleDateString("en-GB",{weekday:"long",day:"numeric",month:"long"})}</p>
+    <h1 class="mt-s">${done?"Today is done.":"Ten minutes, four small things."}</h1>
+    <p class="lede">${done?"Come back tomorrow, or keep going in any room below.":"A word, a rule, a conversation and a line of your own. That is the whole session."}</p>
+    <div class="row mt-s"><button class="chip on" data-pick-level>${LEVEL_COPY[P.level].label}</button><button class="chip" data-accent>${P.accent==="en-GB"?"British voice":"American voice"}</button></div>
+    <section class="card mt"><p class="eyebrow">Today’s path</p><ol class="path">${rows.map((r,i)=>`<li><span class="n">${i+1}</span><span class="eyebrow k">${r[0]}</span><span>${esc(r[1])}</span></li>`).join("")}</ol>
+    <button class="btn mt-s" style="margin-top:22px" data-start>${done?"Do it again":"Start today’s practice"}</button></section>
+    <section class="mt"><h2 style="font-size:1.5rem">Practice rooms</h2><div class="grid mt-s">
+      ${[["words","Words","Meaning, sound, and the company a word keeps."],["grammar","Grammar","One rule, then a short drill."],["listen","Listen","Short conversations, then a check."],["speak","Speak","Hear a model, then say it yourself."]].map(r=>`<button class="room" data-go="${r[0]}"><b>${r[1]}</b><span class="muted small">${r[2]}</span></button>`).join("")}</div>
+      <button class="room mt-s" style="background:var(--primary);color:var(--primary-fg)" data-go="coach"><b>Writing coach</b><span class="small" style="opacity:.85">Paste a sentence and get a cleaner version, or chat in English.</span></button></section></div>`;
+  },
+  lessons(){
+    return `<div class="in"><p class="eyebrow">Learning library</p><h1 class="mt-s">Choose a small lesson.</h1><p class="lede">Build your English one useful step at a time. Pick up where you feel ready.</p><div class="grid mt">
+      ${[["words","Words","Grow your vocabulary with meaning, examples and pronunciation.","↗"],["grammar","Grammar","Understand one rule, then try a short practice.","Aa"],["listen","Listening","Hear everyday conversations and check what you understood.","♫"],["coach","Writing coach","Improve a sentence, ask a question, or practise a conversation.","✎"]].map(r=>`<button class="room lesson-room" data-go="${r[0]}"><span class="lesson-symbol" aria-hidden="true">${r[3]}</span><b>${r[1]}</b><span class="muted small">${r[2]}</span><span class="lesson-open">Explore →</span></button>`).join("")}
+    </div></div>`;
+  },
+  words(){
+    const sets=byLevel(VOCAB_SETS,P.level||"beginner"); const set=sets.find(s=>s.id===wordSet)||sets[0];
+    return `<div class="in"><p class="eyebrow">Words</p><h1 class="mt-s">Learn a word properly.</h1><p class="lede">${esc(set.blurb)}</p>
+    <div class="row mt-s" style="gap:6px;flex-wrap:wrap">${sets.map(s=>`<button class="chip ${s.id===set.id?"on":""}" data-set="${s.id}">${esc(s.title)} <span class="muted">(${s.items.length})</span></button>`).join("")}</div>
+    <div class="row mt-s" style="gap:8px"><input id="word-search" type="search" placeholder="Search English word or Vietnamese meaning…" value="${esc(wordSearch)}" style="flex:1;min-width:180px"/><button class="btn sec" data-wordsearch>Search</button><button class="btn sec" data-wordclear>Clear</button></div>
+    <p class="muted small mt-s">${set.items.filter(i=>P.known.includes(i.id)).length} of ${set.items.length} kept · ${set.items.filter(v=>!wordSearch.trim()||(v.word+" "+v.meaning+" "+v.example).toLowerCase().includes(wordSearch.trim().toLowerCase())).length} matching words</p>
+    ${(()=>{const filtered=set.items.filter(v=>!wordSearch.trim()||(v.word+" "+v.meaning+" "+v.example).toLowerCase().includes(wordSearch.trim().toLowerCase()));const pages=Math.max(1,Math.ceil(filtered.length/30));wordPage=Math.min(wordPage,pages-1);return `<div class="stack mt-s">${filtered.slice(wordPage*30,wordPage*30+30).map(vocabCard).join("")||'<p class="muted small">No matching words. Try a shorter search.</p>'}</div><div class="row mt-s" style="justify-content:space-between;align-items:center"><button class="btn sec" data-wpage="prev" ${wordPage===0?'disabled':''}>← Previous</button><span class="muted small">Page ${wordPage+1} of ${pages}</span><button class="btn sec" data-wpage="next" ${wordPage>=pages-1?'disabled':''}>Next →</button></div>`})()}</div>`;
+  },
+  grammar(){
+    const L=GRAMMAR_LESSONS.find(l=>l.id===sub);
+    if(!L) return `<div class="in"><p class="eyebrow">Grammar</p><h1 class="mt-s">One rule at a time.</h1><p class="lede">Read the rule, see it used, then try a short drill.</p><div class="pick">${byLevel(GRAMMAR_LESSONS,P.level||"beginner").map(l=>`<button data-open="${l.id}"><b>${esc(l.title)}</b><span class="muted small">${l.minutes} min · ${esc(l.hook)} ${P.completed.includes(l.id)?'<span class="done">· done</span>':""}</span></button>`).join("")}</div></div>`;
+    return `<div class="in"><button class="back" data-open="">← All lessons</button><h1>${esc(L.title)}</h1><p class="lede">${esc(L.hook)}</p>
+    <div class="stack mt">${L.points.map(p=>`<div class="card"><p style="font-weight:600">${esc(p.heading)}</p><p class="muted small" style="margin-top:8px">${esc(p.body)}</p><p class="ex small">${esc(p.example)}</p></div>`).join("")}</div>
+    <h2 class="mt" style="font-size:1.5rem">Try it</h2><div class="mt-s">${quiz("g-"+L.id,L.questions)}</div></div>`;
+  },
+  listen(){
+    const L=LISTEN_LESSONS.find(l=>l.id===sub);
+    if(!L) return `<div class="in"><p class="eyebrow">Listen</p><h1 class="mt-s">Hear how people really talk.</h1><p class="lede">Short conversations, then a check on what you caught.</p><div class="pick">${byLevel(LISTEN_LESSONS,P.level||"beginner").map(l=>`<button data-open="${l.id}"><b>${esc(l.title)}</b><span class="muted small">${esc(l.setting)} ${P.completed.includes(l.id)?'<span class="done">· done</span>':""}</span></button>`).join("")}</div></div>`;
+    return `<div class="in"><button class="back" data-open="">← All conversations</button><h1>${esc(L.title)}</h1><p class="lede">${esc(L.setting)}</p>
+    <div class="card mt">${dialogue(L.lines)}</div>
+    <div class="card mt-s"><p class="eyebrow">Useful phrases</p>${L.phrases.map(p=>`<div class="line"><span class="who" style="width:auto;flex:0 0 38%;text-transform:none;letter-spacing:0;font-size:.95rem;color:var(--fg);font-weight:600">${esc(p.phrase)}</span><span class="muted small">${esc(p.meaning)}</span></div>`).join("")}</div>
+    <h2 class="mt" style="font-size:1.5rem">What did you catch?</h2><div class="mt-s">${quiz("l-"+L.id,L.questions)}</div></div>`;
+  },
+  speak(){
+    const S=SPEAK_SCENARIOS.find(l=>l.id===sub);
+    if(!S) { const all=byLevel(SPEAK_SCENARIOS,P.level||"beginner"); const filtered=all.filter(l=>(speakFilter==="All"||l.category===speakFilter)&&(l.title+" "+l.situation).toLowerCase().includes(speakSearch.toLowerCase())); return `<div class="in"><p class="eyebrow">Speaking studio · ${all.length} situations</p><h1 class="mt-s">Say it before you need it.</h1><p class="lede">Choose a real-life scene, listen to a model conversation, then practise your own replies. Start simple and build confidence one exchange at a time.</p><div class="row mt" style="gap:8px">${["All","Work","Everyday life"].map(c=>`<button class="chip ${speakFilter===c?"on":""}" data-speakfilter="${c}">${c}</button>`).join("")}</div><div class="row mt-s"><input type="search" id="speak-search" value="${esc(speakSearch)}" placeholder="Search situations…" style="flex:1;min-width:180px"/><button class="btn sec" data-speaksearch>Search</button><button class="btn sec" data-speakclear>Clear</button></div><p class="muted small mt-s">${filtered.length} practice ${filtered.length===1?"situation":"situations"} · Each lesson includes useful phrases, a model dialogue, and speaking prompts.</p><div class="pick">${filtered.map(l=>`<button data-open="${l.id}"><div class="row" style="justify-content:space-between;align-items:center;gap:8px"><b>${esc(l.title)}</b><span class="tag">${esc(l.category||"Speaking")}</span></div><span class="muted small">${esc(l.situation)} ${P.completed.includes(l.id)?'<span class="done">· done</span>':""}</span></button>`).join("")||'<p class="muted small">No matches. Try another search or category.</p>'}</div></div>`; }
+    return `<div class="in"><button class="back" data-open="">← All situations</button><h1>${esc(S.title)}</h1><p class="lede">${esc(S.situation)}</p><p class="muted small mt-s">Aim: ${esc(S.goal)}</p>
+    <div class="card mt"><p class="eyebrow">Lines to steal</p>${S.phrases.map(p=>`<div style="margin-top:14px"><div class="row" style="justify-content:space-between"><span class="display" style="font-size:1.25rem">${esc(p.phrase)}</span>${hearBtn(p.phrase,"Hear")}</div><p class="muted small">${esc(p.why)}</p></div>`).join("")}</div>
+    <div class="card mt-s"><p class="eyebrow">A model conversation</p><div class="mt-s">${dialogue(S.model)}</div></div>
+    <div class="card mt-s" id="recorder-card">
+      <p class="eyebrow">Your speaking recording</p>
+      <h2 class="mt-s" style="font-size:1.35rem">Record your answer</h2>
+      <p class="muted small mt-s">Allow microphone access, then speak naturally. Your recording stays in this page and is not uploaded.</p>
+      <div class="row mt-s">
+        <button class="btn" data-rec-start>● Start recording</button>
+        <button class="btn sec" data-rec-stop disabled>Stop</button>
+      </div>
+      <p id="rec-status" class="muted small mt-s" role="status">Ready when you are.</p>
+      <audio id="rec-playback" controls playsinline hidden style="width:100%;margin-top:12px"></audio>
+      <button class="btn sec sm mt-s" data-rec-clear hidden>Delete recording</button>
+    </div>
+    ${S.turns.map((t,i)=>speakTurn(t,S.id+"-"+i)).join("")}
+    <button class="btn mt" data-finish="${S.id}">Mark this situation done</button></div>`;
+  },
+  progress(){
+    const now=new Date(); const days=[]; for(let i=6;i>=0;i--){const d=new Date(now);d.setDate(now.getDate()-i);days.push({key:todayKey(d),label:d.toLocaleDateString("en-GB",{weekday:"short"})});}
+    const history=P.history||[]; const counts=days.map(d=>history.filter(h=>h.date===d.key).length); const max=Math.max(1,...counts); const week=history.filter(h=>days.some(d=>d.key===h.date)); const done=week.filter(h=>h.type==="completed").length; const activeDays=new Set(week.map(h=>h.date)).size;
+    return `<div class="in"><p class="eyebrow">Your progress</p><h1 class="mt-s">Small steps add up.</h1><p class="lede">A gentle look at your learning over the last seven days.</p>
+      <div class="grid mt"><div class="card"><p class="eyebrow">Points earned</p><p class="display" style="font-size:2rem">${P.xp}</p></div><div class="card"><p class="eyebrow">Day streak</p><p class="display" style="font-size:2rem">${P.streak}</p></div><div class="card"><p class="eyebrow">Active days</p><p class="display" style="font-size:2rem">${activeDays}/7</p></div><div class="card"><p class="eyebrow">Completed this week</p><p class="display" style="font-size:2rem">${done}</p></div></div>
+      <section class="card mt"><h2>Last 7 days</h2><p class="muted small mt-s">Learning activities saved on this device.</p><div class="week-bars mt">${days.map((d,i)=>`<div class="week-day"><span class="week-count">${counts[i]}</span><div class="week-track"><span style="height:${Math.max(counts[i]?8:3,counts[i]/max*100)}%"></span></div><span class="muted small">${d.label}</span></div>`).join("")}</div></section>
+      <section class="card mt"><h2>Recent activity</h2>${history.slice(-8).reverse().map(h=>`<div class="line"><span class="tag">${h.type==="completed"?"Done":"Visit"}</span><span>${esc(h.label)}</span><span class="muted small">${esc(h.date)}</span></div>`).join("")||'<p class="muted small mt-s">Your activity will appear here as you learn.</p>'}</section>
+    </div>`;
+  },
+  settings(){
+    const themes=[["blue","Ocean blue","#8fc6e8"],["violet","Soft violet","#b5a1f5"],["green","Sage green","#9ac9ad"],["rose","Warm rose","#e9a0ae"],["amber","Golden amber","#e7bd70"]];
+    return `<div class="in"><p class="eyebrow">Preferences</p><h1 class="mt-s">Make Lumen yours.</h1><p class="lede">Choose an accent colour and reading comfort settings.</p><div class="card mt"><h2>App colour</h2><p class="muted small mt-s">Choose the colour used for buttons and highlights.</p><div class="grid mt">${themes.map(([id,name,color])=>`<button class="room" data-theme-color="${id}" style="display:flex;align-items:center;gap:12px"><span style="display:inline-block;width:28px;height:28px;border-radius:50%;background:${color}"></span><b style="font-size:1.05rem">${name}</b></button>`).join("")}</div><div class="row mt"><button class="btn sec" data-theme-mode="light">Light mode</button><button class="btn sec" data-theme-mode="dark">Dark mode</button><button class="btn sec" data-theme-mode="system">System</button></div></div><div class="card mt"><h2>Reading size</h2><p class="muted small mt-s">Use your browser zoom for extra-large text, or select a comfortable size.</p><div class="row mt"><button class="btn sec" data-font-size="17">Standard</button><button class="btn sec" data-font-size="18">Large</button><button class="btn sec" data-font-size="20">Extra large</button></div></div></div>`;
+  },
+  coach(){
+    const M={correct:["Correct","Paste a sentence or a short paragraph. You’ll get a cleaner version and a short note on why.","I am agree with you, we should to wait friday."],explain:["Explain","Ask about a word, a tense, or a phrase that still feels slippery.","When do I use yet instead of already?"],chat:["Chat","A short conversation in English. Mistakes get recast, then the talk continues.","I want to practise talking about my weekend."]};
+    const m=M[coach.mode];
+    return `<div class="in"><p class="eyebrow">Coach</p><h1 class="mt-s">A second pair of eyes.</h1><p class="lede">${m[1]}</p>
+    <div class="row mt-s" style="gap:6px">${Object.entries(M).map(([k,v])=>`<button class="chip ${k===coach.mode?"on":""}" data-cmode="${k}">${v[0]}</button>`).join("")}</div>
+    ${coach.mode==="chat"&&coach.hist.length?`<div class="stack mt">${coach.hist.map(t=>`<div class="card"><p class="eyebrow">${t.role==="user"?"You":"Lumen"}</p><p class="reply" style="margin-top:6px">${esc(t.content)}</p></div>`).join("")}</div>`:""}
+    <div class="mt"><textarea id="coach-in" placeholder="${esc(m[2])}" aria-label="Your English" ${coach.busy?"disabled":""}></textarea></div>
+    <div class="row mt-s"><button class="btn" data-ask ${coach.busy?"disabled":""}>${coach.busy?"Thinking…":coach.mode==="chat"?"Send":coach.mode==="correct"?"Check my English":"Explain"}</button></div>
+    ${coach.error?`<p class="bad small mt-s" role="alert">${esc(coach.error)}</p>`:""}
+    ${coach.mode!=="chat"&&coach.reply?`<div class="card mt"><p class="reply">${esc(coach.reply)}</p></div>`:""}</div>`;
+  }
+};
+
+function dailyView(){
+  const p=daily.p, STEPS=["Word","Grammar","Listen","Speak"], s=daily.step;
+  if(s>=4) return `<div class="in"><p class="eyebrow">Today</p><h1 class="mt-s">That’s the ten minutes.</h1><p class="lede">You sat with a word, a rule, a conversation, and a line of your own. Come back tomorrow, the set will have moved on.</p><button class="btn mt" data-exit>Back to today</button></div>`;
+  let body="";
+  if(s===0) body=`<h1>Today’s word</h1><p class="lede">Read it, hear it, then keep it if it feels useful.</p><div class="mt">${vocabCard(p.word)}</div><button class="btn mt-s" data-next>Next, a short rule</button>`;
+  if(s===1) body=`<h1>${esc(p.grammar.title)}</h1><p class="lede">${esc(p.grammar.hook)}</p><div class="stack mt">${p.grammar.points.slice(0,2).map(x=>`<div class="card"><p style="font-weight:600">${esc(x.heading)}</p><p class="muted small" style="margin-top:8px">${esc(x.body)}</p><p class="ex small">${esc(x.example)}</p></div>`).join("")}</div><div class="mt-s">${quiz("d-g-"+p.key,p.grammar.questions.slice(0,2))}</div><button class="btn sec mt-s" data-next>Next, a conversation</button>`;
+  if(s===2) body=`<h1>${esc(p.listen.title)}</h1><p class="lede">${esc(p.listen.setting)}</p><div class="card mt">${dialogue(p.listen.lines)}</div><div class="mt-s">${quiz("d-l-"+p.key,p.listen.questions.slice(0,2))}</div><button class="btn sec mt-s" data-next>Next, your turn to speak</button>`;
+  if(s===3){ const ph=p.speak.phrases[0];
+    body=`<h1>${esc(p.speak.title)}</h1><p class="lede">${esc(p.speak.situation)}</p><p class="muted small mt-s">Aim: ${esc(p.speak.goal)}</p>
+    <div class="card mt"><p class="eyebrow">A line to steal</p><p class="display" style="font-size:1.6rem;margin-top:8px">${esc(ph?.phrase)}</p><p class="muted small mt-s">${esc(ph?.why)}</p><div class="mt-s">${hearBtn(ph?.phrase||"","Hear it")}</div></div>
+    ${speakTurn(p.speak.turns[0],"daily")}<button class="btn mt" data-next>Finish today’s practice</button>`; }
+  return `<section class="in"><div class="row" style="justify-content:space-between"><p class="eyebrow">${STEPS[s]} · ${s+1} of 4</p><button class="back" style="margin:0" data-exit>Close</button></div><div class="bar">${STEPS.map((_,i)=>`<span class="${i<=s?"on":""}"></span>`).join("")}</div><div class="mt">${body}</div></section>`;
+}
+
+function renderChrome(){
+  const active = view==="settings" ? "" : (["words","grammar","listen","coach"].includes(view) ? "lessons" : view);
+  document.getElementById("nav").innerHTML = ROOMS.map(([k,icon,label])=>`<button class="nav-item" data-go="${k}" ${active===k?'aria-current="page"':""}><span class="nav-icon" aria-hidden="true">${icon}</span><span>${label}</span></button>`).join("");
+  document.getElementById("stats").innerHTML = `<span title="Day streak">${P.streak} day${P.streak===1?"":"s"}</span><span title="Points">${P.xp} pts</span>`;
+}
+function render(keepScroll){
+  renderChrome(); app.innerHTML = V[view](); if(!keepScroll) window.scrollTo(0,0);
+}
+function go(v){ if(mediaRecorder && mediaRecorder.state!=="inactive") stopRecording(); view=v; sub=null; daily=null; if(location.hash!=="#"+v) { try{ history.replaceState(null,"","#"+v);}catch(e){} } stopListening(); render(); }
+
+/* ---------- coach ---------- */
+const SYS = (level,mode)=>{
+  const shared=`You are Lumen, a calm English practice coach. The learner is at ${level} level. Be specific, kind, and brief. No emojis. No fluff. British English spelling unless the learner clearly uses American spelling.`;
+  if(mode==="correct") return shared+`\nThe learner submitted English to be improved. Reply in this exact shape:\n\nCorrected\n<the improved sentence or short paragraph>\n\nWhat changed\n- up to 5 short bullets\n\nA more natural version\n<one rewrite that a fluent speaker might actually say, only if it differs>\n\nKeep the meaning. Do not invent extra content. Plain text only, no markdown.`;
+  if(mode==="explain") return shared+`\nExplain the word, phrase, or grammar the learner asked about. Use short paragraphs. Give two clear example sentences. If useful, add one common mistake to avoid. Do not lecture. Plain text only, no markdown.`;
+  return shared+`\nYou are a conversation partner for English practice. Keep replies to 2-5 short sentences. If the learner makes a mistake, recast the correct form naturally inside your reply, then continue. End with one short question to keep the conversation going. Stay in everyday spoken English. Plain text only.`;
+};
+async function ask(){
+  const el=document.getElementById("coach-in"); const text=(el?.value||"").trim().slice(0,800); if(!text||coach.busy) return;
+  coach.busy=true; coach.error=null; if(coach.mode!=="chat") coach.reply=null; render(true);
+  try{
+    const sample = await window.claude?.use?.("sample");
+    if(!sample) throw {code:"none"};
+    let input = text;
+    if(coach.mode==="chat"){
+      const h=coach.hist.slice(-8).map(t=>(t.role==="user"?"Learner: ":"Lumen: ")+t.content).join("\n");
+      input = (h?"Conversation so far:\n"+h+"\n\n":"")+"Learner: "+text+"\n\nReply as Lumen.";
+    }
+    const r = await sample(SYS(P.level||"beginner",coach.mode)+"\n\n---\n"+input,{cache:false});
+    const out=(r.text||"").trim(); if(!out) throw {code:"empty"};
+    if(coach.mode==="chat") coach.hist.push({role:"user",content:text},{role:"assistant",content:out}); else coach.reply=out;
+    award(8); touch(); save();
+  }catch(e){
+    coach.error = e?.code==="none"||e?.code==="not_granted" ? "The writing coach needs permission to ask Claude. Allow it when asked, or reopen the page." : e?.code==="rate_limited" ? "Too many requests. Wait a moment and try again." : "The coach could not reply just now. Try again in a moment.";
+  }
+  coach.busy=false; render(true);
+  const box=document.getElementById("coach-in"); if(box) box.value="";
+}
+
+/* ---------- speaking recorder ---------- */
+let mediaRecorder = null, recordingChunks = [], recordingUrl = null, activeStream = null;
+async function startRecording(){
+  const status=document.getElementById("rec-status");
+  const start=document.querySelector("[data-rec-start]");
+  const stop=document.querySelector("[data-rec-stop]");
+  if(!navigator.mediaDevices?.getUserMedia || !window.MediaRecorder){
+    if(status) status.textContent="Recording is not supported by this browser. Try an up-to-date browser over HTTPS.";
+    return;
+  }
+  try{
+    activeStream=await navigator.mediaDevices.getUserMedia({audio:true});
+    recordingChunks=[];
+    const options = MediaRecorder.isTypeSupported("audio/webm;codecs=opus") ? {mimeType:"audio/webm;codecs=opus"} : {};
+    mediaRecorder=new MediaRecorder(activeStream,options);
+    mediaRecorder.ondataavailable=e=>{if(e.data&&e.data.size) recordingChunks.push(e.data);};
+    mediaRecorder.onstop=()=>{
+      const blob=new Blob(recordingChunks,{type:mediaRecorder.mimeType||"audio/webm"});
+      if(recordingUrl) URL.revokeObjectURL(recordingUrl);
+      recordingUrl=URL.createObjectURL(blob);
+      const player=document.getElementById("rec-playback"), clear=document.querySelector("[data-rec-clear]");
+      if(player){player.src=recordingUrl;player.hidden=false;}
+      if(clear) clear.hidden=false;
+      if(status) status.textContent="Recording ready. Play it back to review your speaking.";
+      activeStream?.getTracks().forEach(track=>track.stop()); activeStream=null;
+      if(start) start.disabled=false; if(stop) stop.disabled=true;
+    };
+    mediaRecorder.start();
+    if(status) status.textContent="Recording… speak clearly, then press Stop.";
+    if(start) start.disabled=true; if(stop) stop.disabled=false;
+  }catch(err){
+    if(status) status.textContent=err?.name==="NotAllowedError"?"Microphone permission was denied. Allow microphone access in your browser settings and try again.":"Could not access the microphone. Check your device and browser permissions.";
+    activeStream?.getTracks().forEach(track=>track.stop()); activeStream=null;
+  }
+}
+function stopRecording(){
+  if(mediaRecorder && mediaRecorder.state!=="inactive") mediaRecorder.stop();
+}
+function clearRecording(){
+  if(recordingUrl) URL.revokeObjectURL(recordingUrl);
+  recordingUrl=null; recordingChunks=[];
+  const player=document.getElementById("rec-playback"), clear=document.querySelector("[data-rec-clear]"), status=document.getElementById("rec-status");
+  if(player){player.pause();player.removeAttribute("src");player.hidden=true;}
+  if(clear) clear.hidden=true;
+  if(status) status.textContent="Recording deleted. Ready when you are.";
+}
+document.addEventListener("click",e=>{
+  if(e.target.closest("[data-rec-start]")) { startRecording(); return; }
+  if(e.target.closest("[data-rec-stop]")) { stopRecording(); return; }
+  if(e.target.closest("[data-rec-clear]")) { clearRecording(); return; }
+});
+if("serviceWorker" in navigator && (location.protocol==="https:" || location.hostname==="localhost")){
+  window.addEventListener("load",()=>navigator.serviceWorker.register("./sw.js").catch(()=>{}));
+}
+
+/* ---------- events ---------- */
+document.addEventListener("click",e=>{
+  const ac=e.target.closest("[data-theme-color]"); if(ac){document.documentElement.dataset.accent=ac.dataset.themeColor; localStorage.setItem("lumen-accent",ac.dataset.themeColor);return;}
+  const tm=e.target.closest("[data-theme-mode]"); if(tm){const mode=tm.dataset.themeMode; if(mode==="system") delete document.documentElement.dataset.theme; else document.documentElement.dataset.theme=mode; localStorage.setItem("lumen-theme",mode);return;}
+  const fs=e.target.closest("[data-font-size]"); if(fs){document.body.style.fontSize=fs.dataset.fontSize+"px";localStorage.setItem("lumen-font-size",fs.dataset.fontSize);return;}
+});
+try{const ac=localStorage.getItem("lumen-accent");if(ac)document.documentElement.dataset.accent=ac;const tm=localStorage.getItem("lumen-theme");if(tm&&tm!=="system")document.documentElement.dataset.theme=tm;const fs=localStorage.getItem("lumen-font-size");if(fs)document.body.style.fontSize=fs+"px";}catch(e){}
+document.addEventListener("click",e=>{
+  const t=e.target.closest("button"); if(!t) return; const d=t.dataset;
+  if(d.speakfilter){ speakFilter=d.speakfilter; return render(true); }
+  if("speaksearch" in d){ speakSearch=document.getElementById("speak-search")?.value||""; return render(true); }
+  if("speakclear" in d){ speakSearch=""; speakFilter="All"; return render(true); }
+  if(d.go) { if(d.go!==view) logActivity("visit",d.go); return go(d.go); }
+  if(d.say!==undefined) return say(d.say);
+  if(d.sayall) return say(JSON.parse(d.sayall));
+  if(d.level){ P.level=d.level; save(); return render(); }
+  if("pickLevel" in d){ P.level=null; save(); return render(); }
+  if("accent" in d){ P.accent=P.accent==="en-GB"?"en-US":"en-GB"; save(); return render(true); }
+  if("start" in d){ daily={step:0,p:plan()}; return render(); }
+  if("exit" in d){ daily=null; return render(); }
+  if("next" in d){ if(daily.step>=3){ if(P.dailyDone!==daily.p.key){P.dailyDone=daily.p.key; award(40);} complete("daily:"+daily.p.key); } daily.step++; return render(); }
+  if(d.known){ const i=P.known.indexOf(d.known); if(i>=0) P.known.splice(i,1); else { P.known.push(d.known); award(15); touch(); } save(); renderChrome(); const y=window.scrollY; render(true); window.scrollTo(0,y); return; }
+  if(d.set){ wordSet=d.set; wordPage=0; wordSearch=""; return render(); }
+  if("wordsearch" in d){ wordSearch=document.getElementById("word-search")?.value||""; wordPage=0; return render(true); }
+  if("wordclear" in d){ wordSearch=""; wordPage=0; return render(true); }
+  if(d.wpage){ wordPage=Math.max(0,wordPage+(d.wpage==="next"?1:-1)); return render(true); }
+  if(d.open!==undefined){ sub=d.open||null; return render(); }
+  if(d.qpick){ const s=QZ[d.qpick]; if(!s.checked){ s.sel=d.v; reQuiz(d.qpick);} return; }
+  if(d.qcheck){ const s=QZ[d.qcheck], q=QSETS[d.qcheck][s.i], g=q.kind==="mcq"?s.sel:s.typed; if(!g?.trim()) return; s.checked=true; if(matches(g,q)) s.score++; return reQuiz(d.qcheck); }
+  if(d.qnext){ const s=QZ[d.qnext], qs=QSETS[d.qnext]; if(s.i+1>=qs.length){ s.done=true; const id=d.qnext; if(!id.startsWith("d-")) complete(id.slice(2)); renderChrome(); } else { s.i++; s.sel=null; s.typed=""; s.checked=false; } return reQuiz(d.qnext); }
+  if(d.qreset){ delete QZ[d.qreset]; return reQuiz(d.qreset); }
+  if(d.cmp){ const v=document.getElementById("say-"+d.cmp)?.value||""; const r=compare(v,d.target); const out=document.getElementById("res-"+d.cmp);
+    out.innerHTML = !v.trim()? `<p class="muted small">Type what you said first.</p>` : r ? `<p class="${r.score>=62?"good":"bad"}">${r.verdict} ${r.score}%</p>${r.missing.length?`<p class="small muted">Missing: ${r.missing.map(esc).join(", ")}</p>`:""}${r.extra.length?`<p class="small muted">Extra: ${r.extra.map(esc).join(", ")}</p>`:""}` : ""; if(r){ award(5); touch(); save(); renderChrome(); } return; }
+  if(d.show){ const m=document.getElementById("mod-"+d.show); m.hidden=!m.hidden; return; }
+  if(d.finish){ complete(d.finish); t.textContent="✓ Done"; t.disabled=true; renderChrome(); return; }
+  if(d.cmode){ coach.mode=d.cmode; coach.error=null; return render(true); }
+  if("ask" in d) return ask();
+});
+document.addEventListener("input",e=>{ if(e.target.id==="word-search"||e.target.id==="speak-search") return; const id=e.target.dataset?.qtype; if(id){ QZ[id].typed=e.target.value; const b=document.querySelector(`[data-quiz="${id}"] [data-qcheck]`); if(b) b.disabled=!e.target.value.trim(); } });
+document.addEventListener("keydown",e=>{ if(e.target.id==="speak-search"&&e.key==="Enter"){e.preventDefault();speakSearch=e.target.value||"";render(true);return;} const id=e.target.dataset?.qtype; if(id&&e.key==="Enter"){ e.preventDefault(); const b=document.querySelector(`[data-quiz="${id}"] [data-qcheck]`); if(b&&!b.disabled) b.click(); } });
+if(canSpeak) speechSynthesis.getVoices();
+const start=(location.hash||"").slice(1); if(ROOMS.some(r=>r[0]===start)) view=start;
+render(true);
+</script>
+
+<style>
+:root[data-accent="violet"]{--primary:#b5a1f5;--primary-fg:#20183b}
+:root[data-accent="green"]{--primary:#75b58e;--primary-fg:#10271a}
+:root[data-accent="rose"]{--primary:#e9a0ae;--primary-fg:#38151d}
+:root[data-accent="amber"]{--primary:#e7bd70;--primary-fg:#30220b}
+@media(max-width:600px){body{padding-inline:14px;font-size:17px}.wrap{max-width:100%}.card,.room{border-radius:20px}.room{padding:22px}.line .who{width:4rem}}
+</style>
+
+<style>
+/* Friendly mobile refinements */
+.btn{min-height:48px;font-weight:650;letter-spacing:.005em}
+button,.chip,.room,.pick button{-webkit-tap-highlight-color:transparent}
+button:focus-visible{outline:3px solid color-mix(in srgb,var(--primary) 60%,transparent);outline-offset:3px}
+.stop-listening{position:fixed;z-index:35;right:16px;bottom:calc(92px + env(safe-area-inset-bottom));box-shadow:0 8px 28px rgba(0,0,0,.2);border-radius:999px;background:var(--bad);color:var(--bad-fg);padding:0 20px;min-height:52px}
+.stop-listening[hidden]{display:none}
+@media(max-width:520px){main{padding-top:24px}main h1{font-size:clamp(2rem,9vw,2.8rem)}.card{padding:18px}.pick button{padding:17px}.row .btn{max-width:100%}nav.rooms{margin-inline:-12px;padding-inline:12px}}
+@media(prefers-reduced-motion:reduce){*,*::before,*::after{animation:none!important;transition:none!important;scroll-behavior:auto!important}}
+</style>
+
+<style>
+/* Accessible, calm mobile polish and weekly progress chart */
+:root{--primary:#8fc6e8;--primary-fg:#15364b}
+.btn,.chip,.room{transition:transform .12s ease,background-color .18s ease,box-shadow .18s ease}
+.btn:active,.chip:active,.room:active{transform:scale(.98)}
+.card,.room{box-shadow:0 3px 14px rgba(34,75,103,.045)}
+.week-bars{display:grid;grid-template-columns:repeat(7,minmax(0,1fr));gap:10px;align-items:end;min-height:150px}
+.week-day{display:flex;flex-direction:column;align-items:center;justify-content:end;gap:7px;min-width:0}
+.week-count{font-size:.78rem;color:var(--muted)}
+.week-track{height:94px;width:min(100%,28px);display:flex;align-items:end;background:var(--surface-2,rgba(120,150,170,.12));border-radius:999px;overflow:hidden}
+.week-track span{display:block;width:100%;min-height:3px;border-radius:999px;background:var(--primary)}
+@media(max-width:520px){.week-bars{gap:6px}.week-track{height:78px}.week-count{font-size:.72rem}.grid{gap:10px}}
+</style>
+
+<style>
+/* Bottom navigation: four clear destinations, with settings kept in the header. */
+body{padding-bottom:calc(104px + env(safe-area-inset-bottom))}
+header.top{gap:10px;align-items:center}
+.settings-trigger{flex:none;width:42px;height:42px;border:1px solid var(--border);border-radius:50%;background:var(--elevated);color:var(--muted);font-size:1.25rem;display:grid;place-items:center;box-shadow:var(--shadow)}
+.settings-trigger:active{transform:scale(.96)}
+nav.rooms{position:fixed;left:50%;bottom:0;transform:translateX(-50%);z-index:30;width:min(100%,780px);margin:0;padding:8px 12px calc(8px + env(safe-area-inset-bottom));display:grid;grid-template-columns:repeat(4,minmax(0,1fr));gap:4px;overflow:visible;background:color-mix(in srgb,var(--elevated) 94%,transparent);border:1px solid var(--border);border-bottom:0;border-radius:20px 20px 0 0;box-shadow:0 -8px 28px rgba(35,65,90,.08);backdrop-filter:blur(18px);-webkit-backdrop-filter:blur(18px)}
+.nav-item{min-width:0;min-height:58px;padding:6px 3px;border:0;border-radius:14px;background:transparent;color:var(--muted);display:flex;flex-direction:column;align-items:center;justify-content:center;gap:2px;font-size:.72rem;font-weight:600;line-height:1.15;white-space:nowrap}
+.nav-icon{font-size:1.25rem;line-height:1.2;font-weight:500}
+.nav-item[aria-current="page"]{background:color-mix(in srgb,var(--primary) 18%,var(--elevated));color:var(--primary)}
+.nav-item[aria-current="page"] .nav-icon{font-weight:800}
+.lesson-room{display:flex;flex-direction:column;align-items:flex-start;gap:7px;min-height:180px}
+.lesson-room b{font-size:1.1rem!important}
+.lesson-symbol{width:38px;height:38px;border-radius:13px;display:grid;place-items:center;background:color-mix(in srgb,var(--primary) 18%,var(--elevated));color:var(--primary);font-weight:800}
+.lesson-open{margin-top:auto;padding-top:8px;color:var(--primary);font-size:.88rem;font-weight:700}
+@media(min-width:781px){nav.rooms{bottom:18px;border:1px solid var(--border);border-radius:20px;padding-bottom:8px}.stop-listening{bottom:calc(96px + env(safe-area-inset-bottom))}}
+@media(max-width:520px){nav.rooms{width:100%;border-radius:18px 18px 0 0;padding-inline:8px}.nav-item{min-height:56px;font-size:.7rem}.settings-trigger{width:40px;height:40px}.stats{margin-left:auto}.brand i{display:none}.lesson-room{min-height:160px}}
+</style>
